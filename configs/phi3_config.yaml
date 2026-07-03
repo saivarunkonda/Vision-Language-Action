@@ -1,0 +1,95 @@
+# Configuration for Phi-3-Mini (3.8B)
+
+model:
+  name: "microsoft/Phi-3-mini-4k-instruct"
+  max_length: 2048
+  trust_remote_code: true
+
+training:
+  batch_size: 32  # Smaller model allows larger batch
+  gradient_accumulation_steps: 2
+  learning_rate: 1.5e-5
+  warmup_ratio: 0.1
+  num_epochs: 4
+  save_steps: 500
+  eval_steps: 500
+  logging_steps: 50
+  fp16: false
+  bf16: true
+  gradient_checkpointing: true
+
+rl:
+  algorithm: "ppo"
+  ppo:
+    clip_range: 0.2
+    value_loss_coef: 0.1
+    entropy_coef: 0.02  # Higher entropy for smaller model
+    gamma: 0.99
+    gae_lambda: 0.95
+    num_minibatches: 4
+    ppo_epochs: 4
+  
+  kl_penalty:
+    initial_kl_coef: 0.15  # Higher KL for stability
+    target_kl: 6.0
+    adaptive_kl: true
+  
+  rewards:
+    outcome_weight: 0.6
+    process_weight: 0.4  # More emphasis on process for SLM
+    process_metrics:
+      - "step_count"
+      - "logical_consistency"
+      - "self_correction"
+
+  curriculum:
+    enabled: true
+    stages: 4  # More stages for smaller model
+    start_ratio: 0.4
+    warmup_steps: 1500
+
+data:
+  train_datasets:
+    - "gsm8k"
+    - "aqua_rat"
+  eval_datasets:
+    - "gsm8k"
+    - "mmlu"
+    - "strategyqa"
+  
+  max_train_samples: 60000
+  max_eval_samples: 1000
+  preprocessing:
+    truncate: true
+    max_length: 1024
+
+evaluation:
+  benchmarks:
+    gsm8k:
+      metric: "accuracy"
+      target: 0.50
+    mmlu:
+      metric: "accuracy"
+      target: 0.45
+    strategyqa:
+      metric: "accuracy"
+      target: 0.65
+  
+  baseline_model: "microsoft/Phi-3-mini-4k-instruct"
+  compare_to_baseline: true
+
+logging:
+  project_name: "slm-rl-reasoning-phi3"
+  entity: null
+  use_wandb: true
+  log_dir: "logs"
+
+output:
+  output_dir: "models/phi3_checkpoints"
+  checkpoint_dir: "models/phi3_checkpoints"
+  save_total_limit: 3
+
+hardware:
+  num_gpus: 2
+  num_cpus: 12
+  mixed_precision: "bf16"

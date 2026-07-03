@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <style>
+      .title { font: bold 20px sans-serif; fill:#0b64b2 }
+      .box-title { font: bold 16px sans-serif; fill:#111 }
+      .label { font: 14px sans-serif; fill:#111 }
+      .small { font: 12px sans-serif; fill:#111 }
+      .arrow { stroke: #333; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead) }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#444" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="40" y="36" class="title">SLM Reasoning — Architecture Overview</text>
+
+  <!-- Data Sources -->
+  <rect x="40" y="60" width="320" height="90" rx="8" ry="8" fill="#f0f8ff" stroke="#0b64b2" stroke-width="2"/>
+  <text x="60" y="92" class="box-title">Data Sources</text>
+  <text x="60" y="118" class="small">GSM8K · MMLU · StrategyQA · AquaRAT</text>
+
+  <!-- Data Ingest -->
+  <rect x="420" y="60" width="360" height="120" rx="8" ry="8" fill="#fff7e6" stroke="#e67e22" stroke-width="2"/>
+  <text x="440" y="92" class="box-title">Data Ingest</text>
+  <text x="440" y="118" class="small">Data loader · Prompt templates · Preprocessing</text>
+
+  <!-- Arrow Data Sources -> Ingest -->
+  <path class="arrow" d="M360 105 L420 105" />
+
+  <!-- SFT Warmstart -->
+  <rect x="40" y="190" width="300" height="90" rx="8" ry="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="60" y="220" class="box-title">SFT Warmstart</text>
+  <text x="60" y="245" class="small">Supervised CoT fine-tune</text>
+
+  <!-- Policy Model -->
+  <rect x="380" y="220" width="300" height="110" rx="8" ry="8" fill="#e3f2fd" stroke="#0288d1" stroke-width="2"/>
+  <text x="400" y="248" class="box-title">Policy SLM</text>
+  <text x="400" y="272" class="small">Phi-3-mini / Qwen-2.5</text>
+
+  <!-- Arrow Ingest->SFT and SFT->Policy -->
+  <path class="arrow" d="M600 180 L600 214" />
+  <path class="arrow" d="M340 235 L380 235" />
+
+  <!-- Training Pipeline group (right) -->
+  <g>
+    <rect x="760" y="60" width="600" height="420" rx="12" ry="12" fill="#ffffff" stroke="#cfd8dc" stroke-width="1"/>
+    <text x="780" y="90" class="label">Training Pipeline</text>
+
+    <!-- PPO -->
+    <rect x="800" y="120" width="240" height="120" rx="8" ry="8" fill="#e3f2fd" stroke="#0288d1" stroke-width="2"/>
+    <text x="820" y="150" class="box-title">PPO Loop</text>
+    <text x="820" y="176" class="small">Policy generation → reward → update</text>
+
+    <!-- Reward -->
+    <rect x="1080" y="120" width="250" height="100" rx="8" ry="8" fill="#fff3e0" stroke="#fb8c00" stroke-width="2"/>
+    <text x="1100" y="150" class="box-title">Rewards</text>
+    <text x="1100" y="174" class="small">Outcome + Process · Reward model</text>
+
+    <!-- Reference Model -->
+    <rect x="800" y="260" width="240" height="80" rx="8" ry="8" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="2"/>
+    <text x="820" y="292" class="box-title">Reference Model</text>
+    <text x="820" y="312" class="small">Frozen baseline for KL</text>
+
+    <!-- Critic -->
+    <rect x="1080" y="250" width="250" height="90" rx="8" ry="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+    <text x="1100" y="282" class="box-title">Value Head (Critic)</text>
+    <text x="1100" y="304" class="small">Value predictions · MSE loss</text>
+
+    <!-- Curriculum -->
+    <rect x="800" y="360" width="240" height="80" rx="8" ry="8" fill="#fff7e6" stroke="#e67e22" stroke-width="2"/>
+    <text x="820" y="392" class="box-title">Curriculum</text>
+    <text x="820" y="412" class="small">Easy → Hard sampling</text>
+
+    <!-- KL controller small box -->
+    <rect x="1080" y="360" width="250" height="80" rx="8" ry="8" fill="#fff3e0" stroke="#fb8c00" stroke-width="2"/>
+    <text x="1100" y="392" class="box-title">Adaptive KL</text>
+    <text x="1100" y="412" class="small">Control policy drift</text>
+
+    <!-- Arrows inside training -->
+    <path class="arrow" d="M680 255 L770 255 L770 170 L800 170" />
+    <path class="arrow" d="M1040 170 L1080 170" />
+    <path class="arrow" d="M1040 210 L1065 210 L1065 295 L1080 295" />
+  </g>
+
+  <!-- Checkpoints -->
+  <path class="arrow" d="M680 300 L800 300" />
+  <path class="arrow" d="M680 315 L770 315 L770 400 L800 400" />
+
+  <!-- Eval & Deploy -->
+  <rect x="40" y="480" width="1320" height="320" rx="12" ry="12" fill="#ffffff" stroke="#cfd8dc" stroke-width="1.5"/>
+  <text x="60" y="512" class="label">Evaluation & Deployment</text>
+
+  <rect x="80" y="540" width="360" height="120" rx="8" ry="8" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="2"/>
+  <text x="100" y="570" class="box-title">Evaluators</text>
+  <text x="100" y="594" class="small">GSM8K · MMLU · StrategyQA</text>
+
+  <rect x="520" y="540" width="360" height="120" rx="8" ry="8" fill="#fff7e6" stroke="#e67e22" stroke-width="2"/>
+  <text x="540" y="570" class="box-title">Self-Consistency</text>
+  <text x="540" y="594" class="small">N-sample voting · Deterministic runs</text>
+
+  <rect x="960" y="540" width="360" height="120" rx="8" ry="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+  <text x="980" y="570" class="box-title">Distill / Quantize</text>
+  <text x="980" y="594" class="small">INT8/4-bit · Latency tuning</text>
+
+  <path class="arrow" d="M560 440 L560 540" />
+  <path class="arrow" d="M1000 440 L1000 540" />
+
+  <!-- Metrics -->
+  <rect x="560" y="680" width="300" height="80" rx="8" ry="8" fill="#fff3e0" stroke="#fb8c00" stroke-width="2"/>
+  <text x="580" y="712" class="box-title">Metrics</text>
+  <text x="580" y="734" class="small">GSM8K/MMLU/StrategyQA · Latency</text>
+
+  <path class="arrow" d="M840 600 L720 680" />
+
+  <!-- Footer -->
+  <text x="40" y="860" class="small">Generated: ARCHITECTURE.svg — ready for PPT (copy into slide)</text>
+</svg>

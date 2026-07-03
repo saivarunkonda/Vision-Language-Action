@@ -1,0 +1,106 @@
+# Kaggle Configuration - Optimized for 2x 16GB GPUs
+
+# Global settings
+seed: 42
+
+# HuggingFace settings
+huggingface:
+  token: "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"  # Will use HF_TOKEN from environment
+
+model:
+  name: "microsoft/Phi-3-mini-4k-instruct"  # Smaller model (3.8B vs 7B)
+  max_length: 2048
+  trust_remote_code: true
+
+training:
+  batch_size: 4  # Per GPU batch size (fits in 16GB)
+  gradient_accumulation_steps: 4  # Increased to maintain effective batch size
+  learning_rate: 1.5e-5
+  warmup_ratio: 0.1
+  num_epochs: 3
+  save_steps: 500
+  eval_steps: 500
+  logging_steps: 50
+  fp16: false
+  bf16: true
+  gradient_checkpointing: true
+  # Effective batch size = 4 * 2 GPUs * 4 = 32
+
+rl:
+  algorithm: "ppo"
+  ppo:
+    clip_range: 0.2
+    value_loss_coef: 0.1
+    entropy_coef: 0.02
+    gamma: 0.99
+    gae_lambda: 0.95
+    num_minibatches: 2  # Reduced from 4
+    ppo_epochs: 4
+  
+  kl_penalty:
+    initial_kl_coef: 0.15
+    target_kl: 6.0
+    adaptive_kl: true
+  
+  rewards:
+    outcome_weight: 0.6
+    process_weight: 0.4
+    process_metrics:
+      - "step_count"
+      - "logical_consistency"
+      - "self_correction"
+
+  curriculum:
+    enabled: true
+    stages: 4
+    start_ratio: 0.4
+    warmup_steps: 1500
+
+data:
+  train_datasets:
+    - "gsm8k"
+  eval_datasets:
+    - "gsm8k"
+    - "mmlu"
+    - "strategyqa"
+  
+  max_train_samples: 10000  # Reduced for Kaggle
+  max_eval_samples: 500
+  preprocessing:
+    truncate: true
+    max_length: 1024
+
+evaluation:
+  benchmarks:
+    gsm8k:
+      metric: "accuracy"
+      target: 0.50
+    mmlu:
+      metric: "accuracy"
+      target: 0.45
+    strategyqa:
+      metric: "accuracy"
+      target: 0.65
+  
+  baseline_model: "microsoft/Phi-3-mini-4k-instruct"
+  compare_to_baseline: true
+
+logging:
+  project_name: "slm-rl-reasoning-kaggle"
+  entity: null
+  use_wandb: false  # Disabled for Kaggle
+  log_dir: "logs"
+
+output:
+  output_dir: "/kaggle/working/models/checkpoints"
+  checkpoint_dir: "/kaggle/working/models/checkpoints"
+  save_total_limit: 2
+
+hardware:
+  num_gpus: 2  # Kaggle has 2 GPUs
+  num_cpus: 4
+  mixed_precision: "bf16"
+  distributed_type: "MULTI_GPU"  # Use both GPUs
+  gradient_checkpointing: true
+  # CPU offloading for extreme memory pressure
+  cpu_offload: false  # Set to true if still OOM

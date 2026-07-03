@@ -1,0 +1,110 @@
+# Base Configuration for SLM RL Training
+
+# Global settings
+seed: 42  # Random seed for reproducibility
+
+# HuggingFace settings (optional)
+# Set HF_TOKEN environment variable or add token here for faster downloads
+# Get your token at: https://huggingface.co/settings/tokens
+huggingface:
+  token: ""  # Leave empty to use HF_TOKEN environment variable
+
+model:
+  name: "Qwen/Qwen2.5-7B"  # or "microsoft/Phi-3-mini-4k-instruct"
+  max_length: 2048
+  trust_remote_code: true
+
+training:
+  batch_size: 8  # Per GPU batch size
+  gradient_accumulation_steps: 4
+  learning_rate: 1.0e-5
+  warmup_ratio: 0.1
+  num_epochs: 3
+  save_steps: 500
+  eval_steps: 500
+  logging_steps: 50
+  fp16: false
+  bf16: true
+  gradient_checkpointing: true
+  # Effective batch size = batch_size * num_gpus * gradient_accumulation_steps
+  # With 2 GPUs: 8 * 2 * 4 = 64 effective batch size
+
+rl:
+  algorithm: "ppo"  # or "reinforce"
+  ppo:
+    clip_range: 0.2
+    value_loss_coef: 0.1
+    entropy_coef: 0.01
+    gamma: 0.99
+    gae_lambda: 0.95
+    num_minibatches: 4
+    ppo_epochs: 4
+  
+  kl_penalty:
+    initial_kl_coef: 0.1
+    target_kl: 6.0
+    adaptive_kl: true
+  
+  rewards:
+    outcome_weight: 0.7
+    process_weight: 0.3
+    process_metrics:
+      - "step_count"
+      - "logical_consistency"
+      - "self_correction"
+
+  curriculum:
+    enabled: true
+    stages: 3
+    start_ratio: 0.3  # Start with 30% easy examples
+    warmup_steps: 1000
+
+data:
+  train_datasets:
+    - "gsm8k"
+    - "aqua_rat"
+  eval_datasets:
+    - "gsm8k"
+    - "mmlu"
+    - "strategyqa"
+  
+  max_train_samples: 50000
+  max_eval_samples: 1000
+  preprocessing:
+    truncate: true
+    max_length: 1024
+
+evaluation:
+  benchmarks:
+    gsm8k:
+      metric: "accuracy"
+      target: 0.50
+    mmlu:
+      metric: "accuracy"
+      target: 0.45
+    strategyqa:
+      metric: "accuracy"
+      target: 0.65
+  
+  baseline_model: "Qwen/Qwen2.5-7B"
+  compare_to_baseline: true
+
+logging:
+  project_name: "slm-rl-reasoning"
+  entity: null
+  use_wandb: false  # Set to false to skip WandB prompts
+  log_dir: "logs"
+
+output:
+  output_dir: "models/checkpoints"
+  checkpoint_dir: "models/checkpoints"
+  save_total_limit: 3
+
+hardware:
+  num_gpus: 2  # Number of GPUs to use
+  num_cpus: 12  # Number of CPU cores for data loading
+  mixed_precision: "bf16"  # Options: "no", "fp16", "bf16"
+  # Multi-GPU settings
+  distributed_type: "MULTI_GPU"  # Options: "NO", "MULTI_GPU", "MULTI_CPU"
+  # GPU memory optimization
+  gradient_checkpointing: true  # Reduces memory at cost of speed
