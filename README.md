@@ -65,4 +65,3 @@ pip install -r requirements.txt
 
 ## Citation
 If you use this code, please cite the original benchmarks and models used.
-Checkin and checkout
